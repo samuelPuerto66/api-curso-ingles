@@ -1,0 +1,35 @@
+﻿### Registro de usuario (formulario HTML)
+GET http://127.0.0.1:8000/registro/
+
+### Crear usuario (envía formulario)
+POST http://127.0.0.1:8000/registro/
+Content-Type: application/x-www-form-urlencoded
+
+email=aprendiz%40example.com&password=password123
+
+### Página de login
+GET http://127.0.0.1:8000/login/
+
+### Iniciar sesión (envía formulario)
+POST http://127.0.0.1:8000/login/
+Content-Type: application/x-www-form-urlencoded
+
+email=aprendiz%40example.com&password=password123
+
+### Ver dashboard (requiere sesión activa)
+GET http://127.0.0.1:8000/dashboard/
+
+### Crear una nueva lección (desde dashboard)
+POST http://127.0.0.1:8000/dashboard/
+Content-Type: application/x-www-form-urlencoded
+
+titulo=Mi+tarea+de+prueba&descripcion=Descripción+de+la+tarea
+
+### Actualizar una lección (reemplaza LECCION_ID por un id real)
+POST http://127.0.0.1:8000/editar/LECCION_ID/
+Content-Type: application/x-www-form-urlencoded
+
+titulo=Mi+tarea+actualizada&descripcion=Descripción+actualizada&estado=Activo
+
+### Eliminar una lección (reemplaza LECCION_ID por un id real)
+GET http://127.0.0.1:8000/eliminar/LECCION_ID/
