@@ -100,8 +100,10 @@
 
         <h2>📝 Registro de Alumno</h2>
 
-        {% if mensaje %}
-            <p class="mensaje">{{ mensaje }}</p>
+        {% if messages %}
+            {% for message in messages %}
+                <p class="mensaje">{{ message }}</p>
+            {% endfor %}
         {% endif %}
 
         <form method="POST">

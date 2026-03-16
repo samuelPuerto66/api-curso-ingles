@@ -8,8 +8,21 @@
 <body class="bg-light">
 
 <div class="container mt-5">
-
-    <h2 class="mb-4">📘 Dashboard - Curso de Inglés</h2>
+    <div class="d-flex justify-content-between align-items-start gap-3 mb-4 flex-column flex-md-row">
+        <div>
+            <h2 class="mb-1">📘 Dashboard - Curso de Inglés</h2>
+            <p class="text-muted mb-0">
+                {% if datos.rol %}Rol: <strong>{{ datos.rol }}</strong> ·{% endif %}
+                {% if datos.fecha_registro %}Registrado: <strong>{{ datos.fecha_registro }}</strong>{% endif %}
+            </p>
+        </div>
+        <div class="text-end">
+            {% if email %}
+                <div class="mb-1 text-muted">Conectado como <strong>{{ email }}</strong></div>
+            {% endif %}
+            <a href="{% url 'logout' %}" class="btn btn-outline-secondary btn-sm">Cerrar sesión</a>
+        </div>
+    </div>
 
     {% if messages %}
         {% for message in messages %}
@@ -35,24 +48,33 @@
         <div class="card-header">Mis Lecciones</div>
         <div class="card-body">
 
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                <div>
+                    <span class="badge bg-primary">Total: {{ lecciones|length }}</span>
+                    <span class="badge bg-success">Activas: {{ cursos_activos|length }}</span>
+                    <span class="badge bg-warning text-dark">Pendientes: {{ cursos_pendientes|length }}</span>
+                </div>
+                <div class="btn-group" role="group" aria-label="Filtro de estado">
+                    <a href="?estado=Todos" class="btn btn-sm {% if estado_filtro == 'Todos' %}btn-primary{% else %}btn-outline-primary{% endif %}">Todos</a>
+                    <a href="?estado=Activo" class="btn btn-sm {% if estado_filtro == 'Activo' %}btn-primary{% else %}btn-outline-primary{% endif %}">Activos</a>
+                    <a href="?estado=Pendiente" class="btn btn-sm {% if estado_filtro == 'Pendiente' %}btn-primary{% else %}btn-outline-primary{% endif %}">Pendientes</a>
+                </div>
+            </div>
+
             {% for leccion in lecciones %}
-                <div class="border p-3 mb-2 d-flex justify-content-between">
+                <div class="border p-3 mb-2 rounded d-flex flex-column flex-md-row justify-content-between">
                     <div>
                         <strong>{{ leccion.titulo }}</strong><br>
                         {{ leccion.descripcion }}<br>
-                        <small>Estado: {{ leccion.estado }}</small>
+                        <small class="text-muted">Estado: <span class="badge {% if leccion.estado == 'Activo' %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ leccion.estado }}</span></small>
                     </div>
-                    <div>
-                        <a href="{% url 'editar_leccion' leccion.id %}" class="btn btn-sm btn-primary">Editar</a>
-                        <a href="{% url 'eliminar_leccion' leccion.id %}"
-                           class="btn btn-sm btn-danger"
-                           onclick="return confirm('¿Eliminar lección?')">
-                           Eliminar
-                        </a>
+                    <div class="mt-2 mt-md-0">
+                        <a href="{% url 'editar_leccion' leccion.id %}" class="btn btn-sm btn-primary me-1">Editar</a>
+                        <a href="{% url 'eliminar_leccion' leccion.id %}" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar lección?')">Eliminar</a>
                     </div>
                 </div>
             {% empty %}
-                <p>No tienes lecciones.</p>
+                <p>No tienes lecciones. Crea una nueva en el formulario de arriba.</p>
             {% endfor %}
 
         </div>

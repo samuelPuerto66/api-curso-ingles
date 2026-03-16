@@ -12,6 +12,10 @@ def initialize_firebase():
             
             file_name = os.getenv('FIREBASE_KEYS_PATH')
             
+            if not file_name:
+                print("⚠️ FIREBASE_KEYS_PATH no configurado, saltando inicialización de Firebase")
+                return None
+            
             cert_path = os.path.join(base_dir, file_name)
 
             if not os.path.exists(cert_path):

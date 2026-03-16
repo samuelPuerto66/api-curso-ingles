@@ -5,7 +5,9 @@ from CURSO_ingles.firebase_config import initialize_firebase
 from functools import wraps
 import requests
 import os
+from dotenv import load_dotenv
 
+load_dotenv()
 db = initialize_firebase()
 
 
@@ -13,32 +15,36 @@ db = initialize_firebase()
 
 
 def registro_usuario(request):
-    mensaje = None
 
     if request.method == 'POST':
+
         email = request.POST.get('email')
         password = request.POST.get('password')
 
         try:
+
+            # Crear usuario en Firebase
             user = auth.create_user(
                 email=email,
                 password=password
             )
 
+            # Guardar perfil en Firestore
             db.collection('perfiles').document(user.uid).set({
-                'email': email,
-                'uid': user.uid,
-                'rol': 'alumno',
-                'fecha_registro': firestore.SERVER_TIMESTAMP
+                "uid": user.uid,
+                "email": email,
+                "rol": "alumno",
+                "fecha_registro": firestore.SERVER_TIMESTAMP
             })
 
-            messages.success(request, "Usuario registrado correctamente. Ahora puedes iniciar sesión.")
-            return redirect('login')
+            messages.success(request, "Usuario creado correctamente")
+            return redirect("login")
 
         except Exception as e:
+
             messages.error(request, f"Error: {e}")
 
-    return render(request, 'registro.html')
+    return render(request, "registro.html")
 
 
 
@@ -47,30 +53,32 @@ def registro_usuario(request):
 def login_required_firebase(view_func):
 
     @wraps(view_func)
-    def _wrapped_view(request, *args, **kwargs):
+    def wrapper(request, *args, **kwargs):
 
-        if 'uid' not in request.session:
-            messages.warning(request, 'Debes iniciar sesión')
-            return redirect('login')
+        if "uid" not in request.session:
+
+            messages.warning(request, "Debes iniciar sesión")
+            return redirect("login")
 
         return view_func(request, *args, **kwargs)
 
-    return _wrapped_view
-
+    return wrapper
 
 
 # LOGIN - inicio de sesion despues de registrarse correctamente y el logout o cerrar la sesion
 
 def iniciar_sesion(request):
 
-    if 'uid' in request.session:
-        return redirect('dashboard')
-
     if request.method == 'POST':
+
         email = request.POST.get('email')
         password = request.POST.get('password')
 
-        api_key = os.getenv('FIREBASE_WEB_API_KEY')
+        api_key = os.getenv("FIREBASE_WEB_API_KEY")
+
+        if not api_key:
+            messages.error(request, "Falta FIREBASE_WEB_API_KEY en el archivo .env")
+            return render(request, "login.html")
 
         url = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={api_key}"
 
@@ -84,21 +92,21 @@ def iniciar_sesion(request):
             response = requests.post(url, json=payload)
             data = response.json()
 
-            if response.status_code == 200:
-
-                request.session['uid'] = data['localId']
-                request.session['email'] = data['email']
+            if "localId" in data:
+                request.session["uid"] = data["localId"]
+                request.session["email"] = data.get("email")
 
                 messages.success(request, "Bienvenido al curso")
-                return redirect('dashboard')
+                return redirect("dashboard")
 
             else:
-                messages.error(request, "Credenciales incorrectas")
+                error_msg = data.get("error", {}).get("message", "Correo o contraseña incorrectos")
+                messages.error(request, f"Error de autenticación: {error_msg}")
 
         except Exception as e:
             messages.error(request, f"Error: {e}")
 
-    return render(request, 'login.html')
+    return render(request, "login.html")
 
 
 def cerrar_sesion(request):
@@ -146,10 +154,10 @@ def dashboard(request):
             messages.error(request, "Título y descripción son requeridos")
 
     # Obtener todas las lecciones del usuario
+    estado_filtro = request.GET.get('estado', 'Todos')
     lecciones = []
     cursos_activos = []
     cursos_pendientes = []
-    cursos_disponibles = []
 
     try:
         lecciones_ref = db.collection('lecciones').where('usuario_id', '==', uid).stream()
@@ -157,6 +165,11 @@ def dashboard(request):
         for lec in lecciones_ref:
             data = lec.to_dict()
             data['id'] = lec.id
+
+            # Aplicar filtro si el usuario lo seleccionó
+            if estado_filtro != 'Todos' and data.get('estado') != estado_filtro:
+                continue
+
             lecciones.append(data)
             estado = data.get('estado', 'Pendiente')
 
@@ -172,60 +185,8 @@ def dashboard(request):
         'lecciones': lecciones,
         'cursos_activos': cursos_activos,
         'cursos_pendientes': cursos_pendientes,
-        'cursos_disponibles': cursos_disponibles
-    })
-
-# =========================
-# DASHBOARD + CREATE + READ
-# =========================
-@login_required_firebase
-def dashboard(request):
-
-    uid = request.session.get('uid')
-
-    # ===== CREATE =====
-    if request.method == 'POST':
-        titulo = request.POST.get('titulo')
-        descripcion = request.POST.get('descripcion')
-
-        if titulo and descripcion:
-            db.collection('lecciones').add({
-                'titulo': titulo,
-                'descripcion': descripcion,
-                'estado': 'Pendiente',
-                'usuario_id': uid,
-                'fecha_creacion': firestore.SERVER_TIMESTAMP
-            })
-            messages.success(request, "Lección creada correctamente")
-        else:
-            messages.error(request, "Todos los campos son obligatorios")
-
-        return redirect('dashboard')
-
-    # ===== READ =====
-    lecciones_ref = db.collection('lecciones') \
-        .where('usuario_id', '==', uid) \
-        .stream()
-
-    lecciones = []
-    cursos_activos = []
-    cursos_pendientes = []
-
-    for lec in lecciones_ref:
-        data = lec.to_dict()
-        data['id'] = lec.id
-        lecciones.append(data)
-
-        if data.get('estado') == 'Activo':
-            cursos_activos.append(data)
-        else:
-            cursos_pendientes.append(data)
-
-    return render(request, 'dashboard.html', {
-        'lecciones': lecciones,
-        'cursos_activos': cursos_activos,
-        'cursos_pendientes': cursos_pendientes,
-        'cursos_disponibles': []
+        'estado_filtro': estado_filtro,
+        'email': request.session.get('email')
     })
 
 
