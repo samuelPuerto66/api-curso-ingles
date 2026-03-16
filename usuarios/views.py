@@ -6,6 +6,9 @@ from functools import wraps
 import requests
 import os
 from dotenv import load_dotenv
+from django.views.decorators.csrf import csrf_exempt
+import json # Importante para parsear el cuerpo de la petición
+from django.http import JsonResponse
 
 load_dotenv()
 db = initialize_firebase()
@@ -66,44 +69,55 @@ def login_required_firebase(view_func):
 
 
 # LOGIN - inicio de sesion despues de registrarse correctamente y el logout o cerrar la sesion
-
+@csrf_exempt
 def iniciar_sesion(request):
-
+    # --- 1. Detectar si los datos vienen de un Script (JSON) o del Navegador (POST) ---
     if request.method == 'POST':
-
-        email = request.POST.get('email')
-        password = request.POST.get('password')
+        if request.content_type == 'application/json':
+            # Si viene del script de Python
+            datos = json.loads(request.body)
+            email = datos.get('email')
+            password = datos.get('password')
+            es_api = True
+        else:
+            # Si viene del formulario web
+            email = request.POST.get('email')
+            password = request.POST.get('password')
+            es_api = False
 
         api_key = os.getenv("FIREBASE_WEB_API_KEY")
-
-        if not api_key:
-            messages.error(request, "Falta FIREBASE_WEB_API_KEY en el archivo .env")
-            return render(request, "login.html")
-
         url = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={api_key}"
-
-        payload = {
-            "email": email,
-            "password": password,
-            "returnSecureToken": True
-        }
+        payload = {"email": email, "password": password, "returnSecureToken": True}
 
         try:
             response = requests.post(url, json=payload)
             data = response.json()
 
-            if "localId" in data:
+            if "idToken" in data: # Firebase devuelve idToken, no localId para el JWT
+                # Guardar en sesión para el navegador
                 request.session["uid"] = data["localId"]
                 request.session["email"] = data.get("email")
 
+                if es_api:
+                    # SI ES EL SCRIPT: Devolvemos el token en JSON
+                    return JsonResponse({
+                        "token": data["idToken"], 
+                        "email": data["email"]
+                    }, status=200)
+                
+                # SI ES EL NAVEGADOR: Redirigimos
                 messages.success(request, "Bienvenido al curso")
                 return redirect("dashboard")
 
             else:
-                error_msg = data.get("error", {}).get("message", "Correo o contraseña incorrectos")
-                messages.error(request, f"Error de autenticación: {error_msg}")
+                error_msg = data.get("error", {}).get("message", "Credenciales inválidas")
+                if es_api:
+                    return JsonResponse({"error": error_msg}, status=400)
+                
+                messages.error(request, f"Error: {error_msg}")
 
         except Exception as e:
+            if es_api: return JsonResponse({"error": str(e)}, status=500)
             messages.error(request, f"Error: {e}")
 
     return render(request, "login.html")
