@@ -189,8 +189,15 @@ def iniciar_sesion(request):
                     }, status=200)
                 
                 # SI ES EL NAVEGADOR: Redirigimos
-                messages.success(request, "Bienvenido al curso")
-                return redirect("dashboard")
+                uid = data["localId"]
+
+                doc_ref = db.collection('perfiles').document(uid).get()
+                perfil = doc_ref.to_dict()
+                if perfil.get("rol") == "profesor":
+                    return redirect("dashboard_profesor")
+                else:
+                    return redirect("dashboard")
+            
 
             else:
                 error_msg = data.get("error", {}).get("message", "Credenciales inválidas")
@@ -321,3 +328,42 @@ def eliminar_leccion(request, leccion_id):
     messages.success(request, "Lección eliminada")
 
     return redirect('dashboard')
+
+# =================
+# Profesor
+# =================
+
+@login_required_firebase
+def dashboard_profesor(request):
+    uid = request.session.get('uid')
+    datos_usuario = {}
+
+    try:
+        doc_ref = db.collection('perfiles').document(uid)
+        doc = doc_ref.get()
+
+        if doc.exists:
+            datos_usuario = doc.to_dict()
+
+    except Exception as e:
+        messages.error(request, f"Error BD: {e}")
+
+    lecciones = []
+
+    try:
+        lecciones_ref = db.collection('lecciones').where('usuario_id', '==', uid).stream()
+
+        for lec in lecciones_ref:
+            data = lec.to_dict()
+            data['id'] = lec.id
+            lecciones.append(data)
+
+    except Exception as e:
+        messages.error(request, f"Error al obtener lecciones: {e}")
+
+   
+    return render(request, 'dashboard_profesor.html', {
+        'datos': datos_usuario,
+        'lecciones': lecciones,
+        'email': request.session.get('email')
+    })
