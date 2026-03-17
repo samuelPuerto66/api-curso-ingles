@@ -5,7 +5,7 @@ from google import genai
 from google.genai import types
 
 # --- Configuración ---
-API_KEY = "AIzaSyD1oRY5_Ut1dT3L73tj-c752yfDMMTzA18"
+API_KEY = "AIzaSyDANOO_JYw7oZB0u6y523yoA9zqN_XZb_I"
 MODELO_ID = "gemini-2.5-flash"
 
 
