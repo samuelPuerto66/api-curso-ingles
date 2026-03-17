@@ -14,6 +14,89 @@ load_dotenv()
 db = initialize_firebase()
 
 
+@csrf_exempt
+def api_obtener_lecciones(request):
+    """API para obtener las lecciones del usuario logueado"""
+    if request.method == 'GET':
+        # Obtener el UID del token de Firebase
+        auth_header = request.headers.get('Authorization', '')
+        if not auth_header.startswith('Bearer '):
+            return JsonResponse({"error": "No autenticado"}, status=401)
+        
+        token = auth_header[7:]  # Quitar "Bearer "
+        
+        try:
+            # Verificar el token con Firebase Admin
+            decoded_token = auth.verify_id_token(token)
+            uid = decoded_token.get('uid')
+        except Exception as e:
+            return JsonResponse({"error": f"Token inválido: {str(e)}"}, status=401)
+        
+        lecciones = []
+        
+        try:
+            lecciones_ref = db.collection('lecciones').where('usuario_id', '==', uid).stream()
+            
+            for lec in lecciones_ref:
+                data = lec.to_dict()
+                data['id'] = lec.id
+                lecciones.append(data)
+                
+            return JsonResponse({"lecciones": lecciones}, status=200)
+            
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+    
+    return JsonResponse({"error": "Método no permitido"}, status=405)
+
+
+@csrf_exempt
+def api_crear_leccion(request):
+    """API para crear una nueva lección"""
+    if request.method == 'POST':
+        # Obtener el UID del token de Firebase
+        auth_header = request.headers.get('Authorization', '')
+        if not auth_header.startswith('Bearer '):
+            return JsonResponse({"error": "No autenticado"}, status=401)
+        
+        token = auth_header[7:]  # Quitar "Bearer "
+        
+        try:
+            # Verificar el token con Firebase Admin
+            decoded_token = auth.verify_id_token(token)
+            uid = decoded_token.get('uid')
+        except Exception as e:
+            return JsonResponse({"error": f"Token inválido: {str(e)}"}, status=401)
+        
+        # Obtener datos del JSON
+        try:
+            data = json.loads(request.body)
+            titulo = data.get('titulo', '').strip()
+            descripcion = data.get('descripcion', '').strip()
+            
+            if not titulo or not descripcion:
+                return JsonResponse({"error": "Título y descripción son requeridos"}, status=400)
+            
+            # Crear lección en Firestore
+            doc_ref = db.collection('lecciones').add({
+                'titulo': titulo,
+                'descripcion': descripcion,
+                'estado': 'Pendiente',
+                'usuario_id': uid,
+                'fecha_creacion': firestore.SERVER_TIMESTAMP
+            })
+            
+            return JsonResponse({
+                "mensaje": "Lección creada correctamente",
+                "leccion_id": doc_ref[1].id
+            }, status=201)
+            
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+    
+    return JsonResponse({"error": "Método no permitido"}, status=405)
+
+
 # Registro de usuarios para ingresar al inicio de sesion 
 
 
@@ -106,8 +189,15 @@ def iniciar_sesion(request):
                     }, status=200)
                 
                 # SI ES EL NAVEGADOR: Redirigimos
-                messages.success(request, "Bienvenido al curso")
-                return redirect("dashboard")
+                uid = data["localId"]
+
+                doc_ref = db.collection('perfiles').document(uid).get()
+                perfil = doc_ref.to_dict()
+                if perfil.get("rol") == "profesor":
+                    return redirect("dashboard_profesor")
+                else:
+                    return redirect("dashboard")
+            
 
             else:
                 error_msg = data.get("error", {}).get("message", "Credenciales inválidas")
@@ -238,3 +328,42 @@ def eliminar_leccion(request, leccion_id):
     messages.success(request, "Lección eliminada")
 
     return redirect('dashboard')
+
+# =================
+# Profesor
+# =================
+
+@login_required_firebase
+def dashboard_profesor(request):
+    uid = request.session.get('uid')
+    datos_usuario = {}
+
+    try:
+        doc_ref = db.collection('perfiles').document(uid)
+        doc = doc_ref.get()
+
+        if doc.exists:
+            datos_usuario = doc.to_dict()
+
+    except Exception as e:
+        messages.error(request, f"Error BD: {e}")
+
+    lecciones = []
+
+    try:
+        lecciones_ref = db.collection('lecciones').where('usuario_id', '==', uid).stream()
+
+        for lec in lecciones_ref:
+            data = lec.to_dict()
+            data['id'] = lec.id
+            lecciones.append(data)
+
+    except Exception as e:
+        messages.error(request, f"Error al obtener lecciones: {e}")
+
+   
+    return render(request, 'dashboard_profesor.html', {
+        'datos': datos_usuario,
+        'lecciones': lecciones,
+        'email': request.session.get('email')
+    })

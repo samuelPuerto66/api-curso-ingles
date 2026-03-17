@@ -2,138 +2,32 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editar Lección - Academy English</title>
+    <title>Editar Lección</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8fafc;
-            color: #1e293b;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-        }
-        .card-edit {
-            border: none;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-            background: white;
-            overflow: hidden;
-        }
-        .card-header-custom {
-            background: #3b82f6;
-            color: white;
-            padding: 2rem;
-            text-align: center;
-            border: none;
-        }
-        .form-label {
-            font-weight: 600;
-            font-size: 0.85rem;
-            color: #64748b;
-            margin-bottom: 0.5rem;
-        }
-        .form-control, .form-select {
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 0.75rem;
-            transition: all 0.2s;
-        }
-        .form-control:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
-        }
-        .btn-save {
-            background-color: #3b82f6;
-            border: none;
-            border-radius: 10px;
-            padding: 0.8rem;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-        .btn-save:hover {
-            background-color: #2563eb;
-            transform: translateY(-1px);
-        }
-        .btn-cancel {
-            background-color: #f1f5f9;
-            color: #64748b;
-            border: none;
-            border-radius: 10px;
-            padding: 0.8rem;
-            font-weight: 600;
-        }
-        .btn-cancel:hover {
-            background-color: #e2e8f0;
-            color: #475569;
-        }
-    </style>
 </head>
-<body>
+<body class="bg-light">
 
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-5">
-            
-            <div class="card card-edit">
-                <div class="card-header-custom">
-                    <i class="fas fa-edit fa-2x mb-3"></i>
-                    <h3 class="h4 mb-0 fw-bold">Editar Lección</h3>
-                    <p class="small mb-0 opacity-75">Modifica los detalles de tu contenido</p>
-                </div>
-                
-                <div class="card-body p-4 p-md-5">
-                    <form method="POST">
-                        {% csrf_token %}
+<div class="container mt-5">
 
-                        <div class="mb-3">
-                            <label class="form-label">Título de la lección</label>
-                            <input type="text" name="titulo" class="form-control" 
-                                   value="{{ leccion.titulo }}" placeholder="Ej: Present Simple" required>
-                        </div>
+    <h3>✏️ Editar La Lección</h3>
 
-                        <div class="mb-3">
-                            <label class="form-label">Descripción detallada</label>
-                            <textarea name="description" class="form-control" rows="4" 
-                                      placeholder="Escribe aquí el contenido..." required>{{ leccion.descripcion }}</textarea>
-                        </div>
+    <form method="POST">
+        {% csrf_token %}
 
-                        <div class="mb-4">
-                            <label class="form-label">Estado de publicación</label>
-                            <select name="estado" class="form-select">
-                                <option value="Pendiente" {% if leccion.estado == "Pendiente" %}selected{% endif %}>
-                                    ⏳ Pendiente
-                                </option>
-                                <option value="Activo" {% if leccion.estado == "Activo" %}selected{% endif %}>
-                                    ✅ Activo
-                                </option>
-                            </select>
-                        </div>
+        <input type="text" name="titulo" class="form-control mb-2"
+               value="{{ leccion.titulo }}" required>
 
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary btn-save shadow-sm">
-                                <i class="fas fa-save me-2"></i>Guardar Cambios
-                            </button>
-                            <a href="{% url 'dashboard' %}" class="btn btn-cancel text-center">
-                                Cancelar
-                            </a>
-                        </div>
-                    </form>
-                </div>
-            </div>
+        <textarea name="descripcion" class="form-control mb-2" required>{{ leccion.descripcion }}</textarea>
 
-            <div class="text-center mt-4">
-                <p class="small text-muted">Academy English Online. &copy; 2026</p>
-            </div>
+        <select name="estado" class="form-control mb-3">
+            <option value="Pendiente" {% if leccion.estado == "Pendiente" %}selected{% endif %}>Pendiente</option>
+            <option value="Activo" {% if leccion.estado == "Activo" %}selected{% endif %}>Activo</option>
+        </select>
 
-        </div>
-    </div>
+        <button class="btn btn-primary"> Guardar Cambios</button>
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary">Cancelar ❌</a>
+    </form>
+
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
