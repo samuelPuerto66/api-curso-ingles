@@ -106,6 +106,7 @@ def registro_usuario(request):
 
         email = request.POST.get('email')
         password = request.POST.get('password')
+        rol = request.POST.get('rol', 'alumno')
 
         try:
 
@@ -119,7 +120,7 @@ def registro_usuario(request):
             db.collection('perfiles').document(user.uid).set({
                 "uid": user.uid,
                 "email": email,
-                "rol": "alumno",
+                "rol": rol,
                 "fecha_registro": firestore.SERVER_TIMESTAMP
             })
 
@@ -348,6 +349,28 @@ def dashboard_profesor(request):
     except Exception as e:
         messages.error(request, f"Error BD: {e}")
 
+    # Procesar creación de nueva lección (desde el formulario del profesor)
+    if request.method == 'POST':
+        titulo = request.POST.get('titulo')
+        descripcion = request.POST.get('descripcion')
+
+        if titulo and descripcion:
+            try:
+                db.collection('lecciones').add({
+                    'titulo': titulo,
+                    'descripcion': descripcion,
+                    'estado': 'Pendiente',
+                    'usuario_id': uid,
+                    'fecha_creacion': firestore.SERVER_TIMESTAMP
+                })
+
+                messages.success(request, "Lección creada correctamente")
+                return redirect('dashboard_profesor')
+            except Exception as e:
+                messages.error(request, f"Error al crear lección: {e}")
+        else:
+            messages.error(request, "Título y descripción son requeridos")
+
     lecciones = []
 
     try:
@@ -361,7 +384,6 @@ def dashboard_profesor(request):
     except Exception as e:
         messages.error(request, f"Error al obtener lecciones: {e}")
 
-   
     return render(request, 'dashboard_profesor.html', {
         'datos': datos_usuario,
         'lecciones': lecciones,
