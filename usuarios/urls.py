@@ -1,3 +1,8 @@
+"""URL configuration for usuarios app.
+
+This file defines all URL routes for user authentication,
+dashboard, and lesson management functionality.
+"""
 from django.urls import path
 from . import views
 
