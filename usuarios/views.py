@@ -14,6 +14,89 @@ load_dotenv()
 db = initialize_firebase()
 
 
+@csrf_exempt
+def api_obtener_lecciones(request):
+    """API para obtener las lecciones del usuario logueado"""
+    if request.method == 'GET':
+        # Obtener el UID del token de Firebase
+        auth_header = request.headers.get('Authorization', '')
+        if not auth_header.startswith('Bearer '):
+            return JsonResponse({"error": "No autenticado"}, status=401)
+        
+        token = auth_header[7:]  # Quitar "Bearer "
+        
+        try:
+            # Verificar el token con Firebase Admin
+            decoded_token = auth.verify_id_token(token)
+            uid = decoded_token.get('uid')
+        except Exception as e:
+            return JsonResponse({"error": f"Token inválido: {str(e)}"}, status=401)
+        
+        lecciones = []
+        
+        try:
+            lecciones_ref = db.collection('lecciones').where('usuario_id', '==', uid).stream()
+            
+            for lec in lecciones_ref:
+                data = lec.to_dict()
+                data['id'] = lec.id
+                lecciones.append(data)
+                
+            return JsonResponse({"lecciones": lecciones}, status=200)
+            
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+    
+    return JsonResponse({"error": "Método no permitido"}, status=405)
+
+
+@csrf_exempt
+def api_crear_leccion(request):
+    """API para crear una nueva lección"""
+    if request.method == 'POST':
+        # Obtener el UID del token de Firebase
+        auth_header = request.headers.get('Authorization', '')
+        if not auth_header.startswith('Bearer '):
+            return JsonResponse({"error": "No autenticado"}, status=401)
+        
+        token = auth_header[7:]  # Quitar "Bearer "
+        
+        try:
+            # Verificar el token con Firebase Admin
+            decoded_token = auth.verify_id_token(token)
+            uid = decoded_token.get('uid')
+        except Exception as e:
+            return JsonResponse({"error": f"Token inválido: {str(e)}"}, status=401)
+        
+        # Obtener datos del JSON
+        try:
+            data = json.loads(request.body)
+            titulo = data.get('titulo', '').strip()
+            descripcion = data.get('descripcion', '').strip()
+            
+            if not titulo or not descripcion:
+                return JsonResponse({"error": "Título y descripción son requeridos"}, status=400)
+            
+            # Crear lección en Firestore
+            doc_ref = db.collection('lecciones').add({
+                'titulo': titulo,
+                'descripcion': descripcion,
+                'estado': 'Pendiente',
+                'usuario_id': uid,
+                'fecha_creacion': firestore.SERVER_TIMESTAMP
+            })
+            
+            return JsonResponse({
+                "mensaje": "Lección creada correctamente",
+                "leccion_id": doc_ref[1].id
+            }, status=201)
+            
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+    
+    return JsonResponse({"error": "Método no permitido"}, status=405)
+
+
 # Registro de usuarios para ingresar al inicio de sesion 
 
 
