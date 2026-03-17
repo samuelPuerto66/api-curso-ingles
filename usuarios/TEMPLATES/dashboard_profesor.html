@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard Profesor - Curso de Inglés</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f7f6; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .form-section { background: #e9ecef; padding: 15px; border-radius: 5px; margin: 20px 0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #007bff; color: white; }
+        .btn { padding: 8px 12px; text-decoration: none; border-radius: 4px; color: white; border: none; cursor: pointer; }
+        .btn-edit { background-color: #28a745; }
+        .btn-delete { background-color: #dc3545; }
+        .btn-logout { background-color: #6c757d; }
+        .btn-save { background-color: #007bff; width: 100%; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1> Profesor 🎓</h1>
+        <div>
+            <span>Bienvenido <strong>{{ email }}</strong></span>
+            <a href="{% url 'cerrar_sesion' %}" class="btn btn-logout">Cerrar Sesión</a>
+        </div>
+    </header>
+
+    <div class="form-section">
+        <h3>➕ Crear Nueva Lección de Inglés</h3>
+        <form method="POST">
+            {% csrf_token %}
+            <div style="margin-bottom: 10px;">
+                <input type="text" name="titulo" placeholder="Título de la lección (ej: Present Simple)" required style="width: 98%; padding: 8px;">
+            </div>
+            <div style="margin-bottom: 10px;">
+                <textarea name="descripcion" placeholder="Descripción de la clase..." required style="width: 98%; padding: 8px; height: 60px;"></textarea>
+            </div>
+            <button type="submit" class="btn btn-save">Publicar Lección</button>
+        </form>
+    </div>
+
+    <h3>Mis Lecciones</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Lección</th>
+                <th>Descripción</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for leccion in lecciones %}
+            <tr>
+                <td><strong>{{ leccion.titulo }}</strong></td>
+                <td>{{ leccion.descripcion }}</td>
+                <td><span style="color: orange;">{{ leccion.estado }}</span></td>
+                <td>
+                    <a href="{% url 'editar_leccion' leccion.id %}" class="btn btn-edit">Editar</a>
+                    <a href="{% url 'eliminar_leccion' leccion.id %}" class="btn btn-delete" onclick="return confirm('¿Seguro que quieres eliminar esta lección?')">Eliminar</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" style="text-align: center;">No has creado lecciones aún, empieza por el formulario de arriba.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>
