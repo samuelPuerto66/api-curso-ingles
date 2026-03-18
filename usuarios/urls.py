@@ -18,4 +18,5 @@ urlpatterns = [
     # API Endpoints
     path('api/lecciones/', views.api_obtener_lecciones, name='api_lecciones'),
     path('api/lecciones/crear/', views.api_crear_leccion, name='api_crear_leccion'),
+    path('api/lecciones/editar/<str:leccion_id>/', views.api_editar_leccion, name='api_editar_leccion'),
 ]
