@@ -47,12 +47,3 @@ serviceAccountKey.json
 .DS_Store
 Thumbs.db
 
-# Testing
-.coverage
-htmlcov/
-.pytest_cache/
-.tox/
-
-# Static and Media
-staticfiles/
-media/
