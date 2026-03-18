@@ -46,3 +46,7 @@ GET http://127.0.0.1:8000/eliminar/LECCION_ID/
 
 ### Ver lecciones desde API
 GET http://127.0.0.1:8000/usuarios/api/lecciones/
+
+### API obtener lecciones con token
+GET http://127.0.0.1:8000/usuarios/api/lecciones/
+Authorization: Bearer TOKEN_AQUI
