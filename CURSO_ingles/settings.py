@@ -85,6 +85,7 @@ WSGI_APPLICATION = 'CURSO_ingles.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
+# Configuración de la base de datos SQLite para desarrollo local
 
 DATABASES = {
     'default': {
