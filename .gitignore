@@ -36,10 +36,12 @@ serviceAccountKey.json
 .idea/
 *.swp
 *.swo
+*~
 
 # Environment
 .env
 .env.local
+.env.*.local
 
 # OS
 .DS_Store

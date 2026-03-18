@@ -34,6 +34,7 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
+# Configuración de aplicaciones Django instaladas en el proyecto
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -47,13 +48,19 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    # Seguridad y protección
     'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # Gestión de sesiones
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    # Configuración común
+    'django.middleware.common.CommonMiddleware',
+    # CSRF protection
+    'django.middleware.csrf.CsrfViewMiddleware',
+    # Autenticación
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    # Mensajes
+    'django.contrib.messages.middleware.MessageMiddleware',
 ]
 
 ROOT_URLCONF = 'CURSO_ingles.urls'
@@ -90,6 +97,7 @@ DATABASES = {
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
+# Validadores de contraseña para seguridad del usuario
 
 AUTH_PASSWORD_VALIDATORS = [
     {
