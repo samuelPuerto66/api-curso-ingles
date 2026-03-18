@@ -119,7 +119,7 @@ def mostrar_lecciones(token_firebase: str) -> None:
     except Exception as e:
         print(f"\n❌ Error de conexión: {e}")
 
-
+#crear una nueva leccion 
 def crear_leccion(token_firebase: str) -> None:
     """Crea una nueva lección cuando el usuario escribe 'quiero crear una leccion nueva'"""
     print("\n📝 CREAR NUEVA LECCIÓN")
@@ -153,7 +153,7 @@ def crear_leccion(token_firebase: str) -> None:
     except Exception as e:
         print(f"\n❌ Error de conexión: {e}")
 
-
+#ordenar  las lecciones 
 def ordenar_lecciones(token_firebase: str) -> None:
     """Ordena las lecciones por estado cuando el usuario escribe 'ordena mis lecciones'"""
     url = "http://127.0.0.1:8000/api/lecciones/"
@@ -210,7 +210,7 @@ def ordenar_lecciones(token_firebase: str) -> None:
     except Exception as e:
         print(f"\n❌ Error de conexión: {e}")
 
-
+#editar lecciones 
 def editar_leccion(token_firebase: str) -> None:
     """Edita una leccion existente por su ID."""
     print("\n[EDITAR LECCION]")
@@ -239,7 +239,7 @@ def editar_leccion(token_firebase: str) -> None:
     except Exception as e:
         print(f"Error de conexion: {e}")
 
-
+#eliminar lecciones 
 def eliminar_leccion(token_firebase: str) -> None:
     """Elimina una leccion por su ID."""
     print("\n[ELIMINAR LECCION]")
@@ -263,7 +263,7 @@ def eliminar_leccion(token_firebase: str) -> None:
     except Exception as e:
         print(f"Error de conexion: {e}")
 
-
+#defincion de comandos 
 def main() -> None:
     token = login_usuario()
     if not token:
@@ -331,7 +331,7 @@ def main() -> None:
             continue
         # ============================================================
 
-        # Si no es un comando especial y la IA no está disponible
+        # Si no es un comando especial y la IA no está disponiblee
         if client is None:
             print("\n⚠️ Lo siento, la IA no está disponible en este momento.")
             print("   Pero puedes usar los comandos de lecciones que te mostré arriba.")
