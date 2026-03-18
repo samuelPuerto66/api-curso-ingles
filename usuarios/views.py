@@ -97,6 +97,59 @@ def api_crear_leccion(request):
     return JsonResponse({"error": "Método no permitido"}, status=405)
 
 
+@csrf_exempt
+def api_editar_leccion(request, leccion_id):
+    """API para editar una lección existente"""
+    if request.method not in ['POST', 'PATCH', 'PUT']:
+        return JsonResponse({"error": "Método no permitido"}, status=405)
+
+    auth_header = request.headers.get('Authorization', '')
+    if not auth_header.startswith('Bearer '):
+        return JsonResponse({"error": "No autenticado"}, status=401)
+
+    token = auth_header[7:]
+
+    try:
+        decoded_token = auth.verify_id_token(token)
+        uid = decoded_token.get('uid')
+    except Exception as e:
+        return JsonResponse({"error": f"Token inválido: {str(e)}"}, status=401)
+
+    try:
+        data = json.loads(request.body)
+        titulo = data.get('titulo')
+        descripcion = data.get('descripcion')
+        estado = data.get('estado')
+
+        leccion_ref = db.collection('lecciones').document(leccion_id)
+        leccion_doc = leccion_ref.get()
+
+        if not leccion_doc.exists:
+            return JsonResponse({"error": "Lección no encontrada"}, status=404)
+
+        leccion = leccion_doc.to_dict()
+        if leccion.get('usuario_id') != uid:
+            return JsonResponse({"error": "No autorizado"}, status=403)
+
+        update_data = {}
+        if titulo is not None:
+            update_data['titulo'] = titulo.strip()
+        if descripcion is not None:
+            update_data['descripcion'] = descripcion.strip()
+        if estado is not None:
+            update_data['estado'] = estado.strip()
+
+        if not update_data:
+            return JsonResponse({"error": "No hay campos para actualizar"}, status=400)
+
+        leccion_ref.update(update_data)
+
+        return JsonResponse({"mensaje": "Lección actualizada correctamente"}, status=200)
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
 # Registro de usuarios para ingresar al inicio de sesion 
 
 
