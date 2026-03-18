@@ -211,10 +211,10 @@ def main() -> None:
 
     print("\n🎓 ¡Hola! Soy tu asistente del curso de inglés.")
     print("💡 Comandos disponibles:")
-    print("   • 'que lecciones tengo' - Ver todas mis lecciones")
-    print("   • 'quiero crear una leccion nueva' - Crear lección")
-    print("   • 'ordena mis lecciones' - Ordenar por estado")
-    print("   • 'salir' - Terminar")
+    print("   • 'Que lecciones tengo' - Ver todas mis lecciones")
+    print("   • 'Quiero crear una leccion nueva' - Crear lección")
+    print("   • 'Ordena mis lecciones' - Ordenar por estado")
+    print("   • 'Salir' - Terminar")
 
     while True:
         user_input = input("\nTú: ")
