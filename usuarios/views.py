@@ -10,7 +10,8 @@ from django.views.decorators.csrf import csrf_exempt
 import json # Importante para parsear el cuerpo de la petición
 from django.http import JsonResponse
 
-load_dotenv()
+# Las variables de entorno se cargan en CURSO_ingles/firebase_config.py
+# para garantizar que se lean desde la raíz del proyecto.
 db = initialize_firebase()
 
 
@@ -191,10 +192,12 @@ def registro_usuario(request):
 # Erro del registro para iniciar sesion
 
 def login_required_firebase(view_func):
+    """Decorador que exige que el usuario esté autenticado en la sesión de Firebase."""
 
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
 
+        # Si no hay UID en la sesión, redirigimos al login
         if "uid" not in request.session:
 
             messages.warning(request, "Debes iniciar sesión")
