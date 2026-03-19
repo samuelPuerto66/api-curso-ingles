@@ -286,6 +286,7 @@ def main() -> None:
             "\n⚠️ Nota: google.genai no está instalado. El CLI seguirá funcionando en modo lecciones."
         )
 
+    # Mensajes de bienvenida del asistente
     print("\n🎓 ¡Hola! Soy tu asistente del curso de inglés.")
     print("💡 Comandos disponibles:")
     print("   • 'que lecciones tengo' - Ver todas mis lecciones")
