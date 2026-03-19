@@ -342,6 +342,7 @@ def main() -> None:
             print("   Pero puedes usar los comandos de lecciones que te mostré arriba.")
             continue
 
+        # Construir el prompt que se envía a la IA (no afecta lógica de comandos)
         prompt = (
             f"Instrucción: Eres un asistente para ADSO. "
             f"Para cualquier consulta técnica, utiliza EXCLUSIVAMENTE este token de Firebase: {token}. "
