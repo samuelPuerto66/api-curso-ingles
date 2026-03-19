@@ -5,6 +5,8 @@ Django's command-line utility for administrative tasks.
 Este script permite ejecutar comandos de gestión de Django
 como migraciones, servidor de desarrollo, creación de superusuarios, etc.
 """
+
+# Nota: este archivo se mantiene casi sin cambios para mantener compatibilidad.
 import os
 import sys
 
