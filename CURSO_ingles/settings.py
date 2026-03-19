@@ -11,8 +11,12 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 import os
+import warnings
 from pathlib import Path
 from dotenv import load_dotenv
+
+# Evitar advertencias conocidas de dependencia externa
+warnings.filterwarnings("ignore", message="Detected filter using positional arguments")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -68,7 +72,7 @@ ROOT_URLCONF = 'CURSO_ingles.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -132,3 +136,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Configuración por defecto para nuevos modelos (Django 3.2+)
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
