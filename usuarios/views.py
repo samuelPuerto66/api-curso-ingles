@@ -14,6 +14,7 @@ from django.http import JsonResponse
 # para garantizar que se lean desde la raíz del proyecto.
 db = initialize_firebase()
 
+# El cliente de Firestore se inicializa una sola vez al cargar el módulo.
 
 @csrf_exempt
 def api_obtener_lecciones(request):
