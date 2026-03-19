@@ -3,6 +3,9 @@ import time
 import getpass
 import sys
 import io
+from typing import Any
+
+# Script CLI para pruebas locales
 
 try:
     from google import genai
@@ -22,6 +25,7 @@ except Exception:
 # --- Configuración ---
 API_KEY = "AIzaSyDlszptdn4UWlpDduKm1YIySJ7CoycwaCY"
 MODELO_ID = "gemini-2.5-flash"
+DEBUG_MODE = False
 
 
 def login_usuario() -> str | None:
@@ -119,7 +123,8 @@ def mostrar_lecciones(token_firebase: str) -> None:
     except Exception as e:
         print(f"\n❌ Error de conexión: {e}")
 
-#crear una nueva leccion 
+# crear una nueva lección
+
 def crear_leccion(token_firebase: str) -> None:
     """Crea una nueva lección cuando el usuario escribe 'quiero crear una leccion nueva'"""
     print("\n📝 CREAR NUEVA LECCIÓN")
@@ -266,6 +271,7 @@ def eliminar_leccion(token_firebase: str) -> None:
 #defincion de comandos 
 def main() -> None:
     token = login_usuario()
+    unused_var = None
     if not token:
         return
 
@@ -281,6 +287,7 @@ def main() -> None:
             "\n⚠️ Nota: google.genai no está instalado. El CLI seguirá funcionando en modo lecciones."
         )
 
+    # Mensajes de bienvenida del asistente
     print("\n🎓 ¡Hola! Soy tu asistente del curso de inglés.")
     print("💡 Comandos disponibles:")
     print("   • 'que lecciones tengo' - Ver todas mis lecciones")
@@ -337,6 +344,7 @@ def main() -> None:
             print("   Pero puedes usar los comandos de lecciones que te mostré arriba.")
             continue
 
+        # Construir el prompt que se envía a la IA (no afecta lógica de comandos)
         prompt = (
             f"Instrucción: Eres un asistente para ADSO. "
             f"Para cualquier consulta técnica, utiliza EXCLUSIVAMENTE este token de Firebase: {token}. "
