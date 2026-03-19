@@ -122,7 +122,8 @@ def mostrar_lecciones(token_firebase: str) -> None:
     except Exception as e:
         print(f"\n❌ Error de conexión: {e}")
 
-#crear una nueva leccion 
+# crear una nueva lección
+
 def crear_leccion(token_firebase: str) -> None:
     """Crea una nueva lección cuando el usuario escribe 'quiero crear una leccion nueva'"""
     print("\n📝 CREAR NUEVA LECCIÓN")
