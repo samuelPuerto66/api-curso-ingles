@@ -4,6 +4,8 @@ import getpass
 import sys
 import io
 
+# Script CLI para pruebas locales
+
 try:
     from google import genai
     from google.genai import types
