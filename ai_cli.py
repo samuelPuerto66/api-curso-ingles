@@ -270,6 +270,7 @@ def eliminar_leccion(token_firebase: str) -> None:
 #defincion de comandos 
 def main() -> None:
     token = login_usuario()
+    unused_var = None
     if not token:
         return
 
