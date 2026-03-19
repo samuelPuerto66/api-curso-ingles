@@ -24,6 +24,7 @@ except Exception:
 # --- Configuración ---
 API_KEY = "AIzaSyDlszptdn4UWlpDduKm1YIySJ7CoycwaCY"
 MODELO_ID = "gemini-2.5-flash"
+DEBUG_MODE = False
 
 
 def login_usuario() -> str | None:
