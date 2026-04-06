@@ -14,7 +14,8 @@ import os
 import warnings
 from pathlib import Path
 from dotenv import load_dotenv
-
+from .utils import get_local_ip
+CURRENT_IP = get_local_ip()
 # Evitar advertencias conocidas de dependencia externa
 warnings.filterwarnings("ignore", message="Detected filter using positional arguments")
 
@@ -34,22 +35,34 @@ SECRET_KEY = 'django-insecure-=%&=j8rq4i^sx%cyh1(d!u(hh52eed03+08ziood7m9zc$%drc
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# El '*' permite que CUALQUIER IP de la red pueda entrar a ver la web
+ALLOWED_HOSTS = ['*'] 
 
+# Esto permite que los WebSockets acepten conexiones desde cualquier origen
+# (Es ideal para desarrollo y pruebas en diferentes dispositivos)
+CORS_ALLOW_ALL_ORIGINS = True
+CSRF_TRUSTED_ORIGINS = [
+    "http://127.0.0.1:8000",
+    "http://localhost:8000",
+    # No pongas IPs fijas aquí si quieres que sea automático
+]
 
 # Application definition
 # Configuración de aplicaciones Django instaladas en el proyecto
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'channels',
     'usuarios',
-    
 ]
+
+ASGI_APPLICATION = 'CURSO_ingles.asgi.application'
 
 MIDDLEWARE = [
     # Seguridad y protección
@@ -140,3 +153,11 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Configuración por defecto para nuevos modelos (Django 3.2+)
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+ASGI_APPLICATION = "CURSO_ingles.asgi.application"
+
+# Activar la capa de canales para el broadcast en tiempo real
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}

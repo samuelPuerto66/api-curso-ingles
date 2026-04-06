@@ -1,16 +1,21 @@
-"""
-ASGI config for CURSO_ingles project.
-
-It exposes the ASGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/6.0/howto/deployment/asgi/
-"""
-
 import os
-
 from django.core.asgi import get_asgi_application
+from channels.routing import ProtocolTypeRouter, URLRouter
+from channels.auth import AuthMiddlewareStack
+
+# Importamos las rutas de websocket de tu app usuarios
+import usuarios.routing 
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'CURSO_ingles.settings')
 
-application = get_asgi_application()
+application = ProtocolTypeRouter({
+    # Para peticiones normales (las páginas web)
+    "http": get_asgi_application(),
+    
+    # Para el chat en tiempo real
+    "websocket": AuthMiddlewareStack(
+        URLRouter(
+            usuarios.routing.websocket_urlpatterns
+        )
+    ),
+})

@@ -1,3 +1,6 @@
+import qrcode
+from django.http import HttpResponse
+from io import BytesIO
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from firebase_admin import auth, firestore
@@ -9,7 +12,20 @@ from dotenv import load_dotenv
 from django.views.decorators.csrf import csrf_exempt
 import json # Importante para parsear el cuerpo de la petición
 from django.http import JsonResponse
+import socket
 
+
+# Función de utilidad (Ponla arriba, fuera de las vistas)
+def get_local_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # No necesita conexión real, solo detecta la interfaz activa
+        s.connect(('8.8.8.8', 80))
+        return s.getsockname()[0]
+    except Exception:
+        return '127.0.0.1'
+    finally:
+        s.close()
 # Las variables de entorno se cargan en CURSO_ingles/firebase_config.py
 # para garantizar que se lean desde la raíz del proyecto.
 db = initialize_firebase()
@@ -279,17 +295,19 @@ def cerrar_sesion(request):
 
 @login_required_firebase
 def dashboard(request):
-
     uid = request.session.get('uid')
     datos_usuario = {}
+    
+    # --- LOGICA AUTOMÁTICA DE IP ---
+    ip_local = get_local_ip()
+    url_qr = f"http://{ip_local}:8000"
+    # -------------------------------
 
     try:
         doc_ref = db.collection('perfiles').document(uid)
         doc = doc_ref.get()
-
         if doc.exists:
             datos_usuario = doc.to_dict()
-
     except Exception as e:
         messages.error(request, f"Error BD: {e}")
 
@@ -348,7 +366,8 @@ def dashboard(request):
         'cursos_activos': cursos_activos,
         'cursos_pendientes': cursos_pendientes,
         'estado_filtro': estado_filtro,
-        'email': request.session.get('email')
+        'email': request.session.get('email'),
+        'url_qr': url_qr,
     })
 
 
@@ -396,17 +415,17 @@ def dashboard_profesor(request):
     uid = request.session.get('uid')
     datos_usuario = {}
 
+    ip_local = get_local_ip()
+    url_qr = f"http://{ip_local}:8000"
+
     try:
         doc_ref = db.collection('perfiles').document(uid)
         doc = doc_ref.get()
-
         if doc.exists:
             datos_usuario = doc.to_dict()
-
     except Exception as e:
         messages.error(request, f"Error BD: {e}")
 
-    # Procesar creación de nueva lección (desde el formulario del profesor)
     if request.method == 'POST':
         titulo = request.POST.get('titulo')
         descripcion = request.POST.get('descripcion')
@@ -420,7 +439,6 @@ def dashboard_profesor(request):
                     'usuario_id': uid,
                     'fecha_creacion': firestore.SERVER_TIMESTAMP
                 })
-
                 messages.success(request, "Lección creada correctamente")
                 return redirect('dashboard_profesor')
             except Exception as e:
@@ -444,5 +462,31 @@ def dashboard_profesor(request):
     return render(request, 'dashboard_profesor.html', {
         'datos': datos_usuario,
         'lecciones': lecciones,
-        'email': request.session.get('email')
+        'email': request.session.get('email'),
+        'url_qr': url_qr,
     })
+
+def generar_qr(request):
+    import socket
+    from django.http import HttpResponse
+    from io import BytesIO
+    import qrcode
+
+    def get_local_ip():
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            s.connect(('8.8.8.8', 80))
+            return s.getsockname()[0]
+        except Exception:
+            return '127.0.0.1'
+        finally:
+            s.close()
+
+    ip = get_local_ip()
+    url = f"http://{ip}:8000/dashboard/"
+
+    qr = qrcode.make(url)
+    buffer = BytesIO()
+    qr.save(buffer, format="PNG")
+
+    return HttpResponse(buffer.getvalue(), content_type="image/png")
