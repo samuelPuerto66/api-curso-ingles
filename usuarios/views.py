@@ -490,3 +490,64 @@ def generar_qr(request):
     qr.save(buffer, format="PNG")
 
     return HttpResponse(buffer.getvalue(), content_type="image/png")
+
+
+
+
+
+@login_required_firebase
+def estadisticas_api(request):
+    if request.method != 'GET':
+        return JsonResponse({"error": "Método no permitido"}, status=405)
+
+    uid = request.session.get('uid')
+    if not uid:
+        return JsonResponse({"error": "No autenticado"}, status=401)
+
+    try:
+        perfil_doc = db.collection('perfiles').document(uid).get()
+        perfil = perfil_doc.to_dict() if perfil_doc.exists else {}
+        rol = perfil.get('rol', '')
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+    try:
+        if rol == 'intrstructor':
+            docs = db.collection('api_tareas').stream()
+        else:
+            docs = db.collection('api_tareas').where('usuario_id', '==', uid).stream()
+
+        total = 0
+        completadas = 0
+        en_proceso = 0
+        pendientes = 0
+
+        for doc in docs:
+            total += 1
+            data = doc.to_dict()
+            estado = data.get('estado', 'Pendiente').lower()
+
+            if 'completada' in estado or 'terminada' in estado:
+                completadas += 1
+            elif 'proceso' in estado:
+                en_proceso += 1
+            else:
+                pendientes += 1
+
+        porcentaje = int((completadas / total) * 100) if total > 0 else 0
+
+        return JsonResponse({
+            "total": total,
+            "completadas": completadas,
+            "en_proceso": en_proceso,
+            "pendientes": pendientes,
+            "porcentaje_completadas": porcentaje,
+            "rol": rol,
+        }, status=200)
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+
+
