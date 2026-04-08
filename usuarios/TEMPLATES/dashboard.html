@@ -235,6 +235,23 @@
                         </div>
                     </div>
                     <div class="card-body">
+                        <div class="mb-4">
+                            <div class="p-3 bg-light rounded-4 border">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div>
+                                        <h6 class="mb-1 fw-semibold">Progreso del estudiante</h6>
+                                        <small class="text-muted">5 lecciones equivalen al 100%.</small>
+                                    </div>
+                                    <span class="badge bg-success">{{ progreso }}%</span>
+                                </div>
+                                <div class="progress rounded-pill" style="height: 1rem;">
+                                    <div class="progress-bar bg-success" role="progressbar"
+                                        style="width: {{ progreso }}%;" aria-valuenow="{{ progreso }}"
+                                        aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <p class="small text-muted mt-2 mb-0">Lecciones completadas: {{ cursos_activos|length }} / 5</p>
+                            </div>
+                        </div>
                         <div class="mb-3 d-flex gap-2 flex-wrap">
                             <a href="?estado=Todos"
                                 class="btn btn-outline-primary btn-sm {% if estado_filtro == 'Todos' %}active{% endif %}">Todos</a>

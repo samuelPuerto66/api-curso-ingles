@@ -1,4 +1,4 @@
 from google import genai
-client = genai.Client(api_key="AIzaSyBsDJxT8AzTZ9N67US7YLQ7s2flb6nPcjY")
+client = genai.Client(api_key="AIzaSyB6-ZRuv4u5fEGChgSM9roWnnp-oo4iXD8")
 for m in client.models.list():
     print(f"Modelo disponible: {m.name}")

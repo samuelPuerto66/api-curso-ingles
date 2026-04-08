@@ -100,7 +100,22 @@
 
             <div class="col-lg-8">
                 <div class="card p-5 h-100 text-center">
-                    <h5 class="fw-bold mb-4 text-start">Distribución de Contenidos</h5>
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h5 class="fw-bold mb-0 text-start">Distribución de Contenidos</h5>
+                            <p class="small text-muted mb-0">5 lecciones equivalen al 100% de progreso del estudiante.</p>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span id="porcentajeCompletado" class="badge bg-success">0% completado</span>
+                            <form method="post" class="mb-0">
+                                {% csrf_token %}
+                                <input type="hidden" name="accion" value="cargar_leccion">
+                                <button type="submit" class="btn btn-sm btn-primary rounded-pill">
+                                    <i class="fas fa-upload me-1"></i> Cargar Lección
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                     <div id="chartContainer">
                         <canvas id="chartLecciones"></canvas>
                     </div>
@@ -120,6 +135,7 @@
                 document.getElementById('total-val').innerText = data.total;
                 document.getElementById('activas-val').innerText = data.activas;
                 document.getElementById('pendientes-val').innerText = data.pendientes;
+                document.getElementById('porcentajeCompletado').innerText = `${data.porcentaje_activas}% completado`;
 
                 // Crear la gráfica con colores estilo Bootstrap (los mismos que usas en los badges)
                 const ctx = document.getElementById('chartLecciones').getContext('2d');

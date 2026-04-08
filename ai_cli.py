@@ -23,7 +23,7 @@ try:
 except Exception:
     pass
 # --- Configuración ---
-API_KEY = "AIzaSyBsDJxT8AzTZ9N67US7YLQ7s2flb6nPcjY"
+API_KEY = "AIzaSyB6-ZRuv4u5fEGChgSM9roWnnp-oo4iXD8"
 MODELO_ID = "gemini-2.5-flash"
 DEBUG_MODE = False
 

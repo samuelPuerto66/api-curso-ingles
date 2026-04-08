@@ -171,6 +171,42 @@ def api_editar_leccion(request, leccion_id):
 # Registro de usuarios para ingresar al inicio de sesion 
 
 
+def cargar_leccion_usuario(uid):
+    """Marca una lección como activa para el alumno o crea una nueva si no hay pendientes."""
+    activos_ref = db.collection('lecciones')\
+        .where('usuario_id', '==', uid)\
+        .where('estado', '==', 'Activo')\
+        .stream()
+
+    activas = sum(1 for _ in activos_ref)
+
+    if activas >= 5:
+        return "¡Ya has completado las 5 lecciones y alcanzaste el 100%!"
+
+    pending_ref = db.collection('lecciones')\
+        .where('usuario_id', '==', uid)\
+        .where('estado', '==', 'Pendiente')\
+        .limit(1)\
+        .stream()
+
+    pendiente_doc = next(pending_ref, None)
+
+    if pendiente_doc:
+        pendiente_doc.reference.update({'estado': 'Activo'})
+        activas += 1
+        return f"Lección cargada. Progreso: {min(100, int((activas / 5) * 100))}%"
+
+    db.collection('lecciones').add({
+        'titulo': f'Lección completada {activas + 1}',
+        'descripcion': 'Lección cargada automáticamente como completada.',
+        'estado': 'Activo',
+        'usuario_id': uid,
+        'fecha_creacion': firestore.SERVER_TIMESTAMP
+    })
+    activas += 1
+    return f"Lección generada y cargada. Progreso: {min(100, int((activas / 5) * 100))}%"
+
+
 def registro_usuario(request):
 
     if request.method == 'POST':
@@ -360,6 +396,8 @@ def dashboard(request):
     except Exception as e:
         messages.error(request, f"Error al obtener lecciones: {e}")
 
+    progreso = min(100, int((len(cursos_activos) / 5) * 100)) if len(cursos_activos) > 0 else 0
+
     return render(request, 'dashboard.html', {
         'datos': datos_usuario,
         'lecciones': lecciones,
@@ -368,6 +406,7 @@ def dashboard(request):
         'estado_filtro': estado_filtro,
         'email': request.session.get('email'),
         'url_qr': url_qr,
+        'progreso': progreso,
     })
 
 
@@ -407,7 +446,7 @@ def eliminar_leccion(request, leccion_id):
     return redirect('dashboard')
 
 # =================
-# Profesor
+# PROFESOR
 # =================
 
 @login_required_firebase
@@ -466,6 +505,9 @@ def dashboard_profesor(request):
         'url_qr': url_qr,
     })
 
+# =================
+# QR-WEBSOKETS
+# =================
 def generar_qr(request):
     import socket
     from django.http import HttpResponse
@@ -493,7 +535,9 @@ def generar_qr(request):
 
 
 
-
+# =================
+# ESTADISTICAS - API y VISTA
+# =================
 
 @login_required_firebase
 def estadisticas_api(request):
@@ -539,14 +583,21 @@ def estadisticas_api(request):
             else:
                 pendientes += 1
 
-        # 5. Calcular porcentaje (evitando división por cero)
-        porcentaje_activas = int((activas / total_lecciones) * 100) if total_lecciones > 0 else 0
+        # 5. Ajustar para el alumno: siempre asumimos 5 lecciones como 100%
+        if rol != 'profesor':
+            total_mostrado = 5
+            pendientes_mostrado = max(0, 5 - activas)
+            porcentaje_activas = min(100, int((activas / 5) * 100))
+        else:
+            total_mostrado = total_lecciones
+            pendientes_mostrado = pendientes
+            porcentaje_activas = int((activas / total_lecciones) * 100) if total_lecciones > 0 else 0
 
         # 6. Devolver la respuesta en JSON
         return JsonResponse({
-            "total": total_lecciones,
+            "total": total_mostrado,
             "activas": activas,
-            "pendientes": pendientes,
+            "pendientes": pendientes_mostrado,
             "porcentaje_activas": porcentaje_activas,
             "rol": rol,
         }, status=200)
@@ -558,7 +609,24 @@ def estadisticas_api(request):
 @login_required_firebase
 def vista_estadisticas(request):
     """
-    Simplemente renderiza la plantilla HTML. 
-    El HTML se encargará de pedir los datos a la API.
+    Renderiza la plantilla de estadísticas.
+    También permite cargar una lección directamente desde esta vista.
     """
+    if request.method == 'POST':
+        uid = request.session.get('uid')
+        try:
+            perfil_doc = db.collection('perfiles').document(uid).get()
+            perfil = perfil_doc.to_dict() if perfil_doc.exists else {}
+            rol = perfil.get('rol', 'alumno')
+
+            if rol == 'profesor':
+                messages.warning(request, 'Los profesores no pueden cargar lecciones desde esta página.')
+                return redirect('vista_estadisticas')
+
+            mensaje = cargar_leccion_usuario(uid)
+            messages.success(request, mensaje)
+        except Exception as e:
+            messages.error(request, f'Error al cargar la lección: {e}')
+        return redirect('vista_estadisticas')
+
     return render(request, 'estadisticas.html')
