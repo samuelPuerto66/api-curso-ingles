@@ -497,6 +497,10 @@ def generar_qr(request):
 
 @login_required_firebase
 def estadisticas_api(request):
+    """
+    API que devuelve el conteo de lecciones del usuario actual
+    en formato JSON para ser consumido por la gráfica.
+    """
     if request.method != 'GET':
         return JsonResponse({"error": "Método no permitido"}, status=405)
 
@@ -505,43 +509,45 @@ def estadisticas_api(request):
         return JsonResponse({"error": "No autenticado"}, status=401)
 
     try:
+        # 1. Traer el perfil para saber si es profesor o alumno
         perfil_doc = db.collection('perfiles').document(uid).get()
         perfil = perfil_doc.to_dict() if perfil_doc.exists else {}
-        rol = perfil.get('rol', '')
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
-
-    try:
-        if rol == 'intrstructor':
-            docs = db.collection('api_tareas').stream()
+        rol = perfil.get('rol', 'alumno')
+        
+        # 2. Consultar las LECCIONES según el rol
+        if rol == 'profesor':
+            # El profesor ve todas las lecciones que ha creado
+            docs = db.collection('lecciones').where('usuario_id', '==', uid).stream()
         else:
-            docs = db.collection('api_tareas').where('usuario_id', '==', uid).stream()
+            # El alumno ve sus lecciones (si aplicara otra lógica, la cambias aquí)
+            docs = db.collection('lecciones').where('usuario_id', '==', uid).stream()
 
-        total = 0
-        completadas = 0
-        en_proceso = 0
+        # 3. Variables para nuestros contadores
+        total_lecciones = 0
+        activas = 0
         pendientes = 0
 
+        # 4. Iterar sobre los documentos y contar
         for doc in docs:
-            total += 1
+            total_lecciones += 1
             data = doc.to_dict()
-            estado = data.get('estado', 'Pendiente').lower()
+            # Obtenemos el estado, por defecto 'Pendiente'
+            estado = data.get('estado', 'Pendiente').strip().capitalize()
 
-            if 'completada' in estado or 'terminada' in estado:
-                completadas += 1
-            elif 'proceso' in estado:
-                en_proceso += 1
+            if estado == 'Activo':
+                activas += 1
             else:
                 pendientes += 1
 
-        porcentaje = int((completadas / total) * 100) if total > 0 else 0
+        # 5. Calcular porcentaje (evitando división por cero)
+        porcentaje_activas = int((activas / total_lecciones) * 100) if total_lecciones > 0 else 0
 
+        # 6. Devolver la respuesta en JSON
         return JsonResponse({
-            "total": total,
-            "completadas": completadas,
-            "en_proceso": en_proceso,
+            "total": total_lecciones,
+            "activas": activas,
             "pendientes": pendientes,
-            "porcentaje_completadas": porcentaje,
+            "porcentaje_activas": porcentaje_activas,
             "rol": rol,
         }, status=200)
 
@@ -549,5 +555,10 @@ def estadisticas_api(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 
-
-
+@login_required_firebase
+def vista_estadisticas(request):
+    """
+    Simplemente renderiza la plantilla HTML. 
+    El HTML se encargará de pedir los datos a la API.
+    """
+    return render(request, 'estadisticas.html')
